@@ -35,9 +35,10 @@ env:
   ECR_REPOSITORY: awstest           # set this to your Amazon ECR repository name
   #ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
   ECS_CLUSTER: awstest                 # set this to your Amazon ECS cluster name
-  #ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
+  ECS_TASK_DEFINITION: dqsapp # set this to the path to your Amazon ECS task definition
                                                # file, e.g. .aws/task-definition.json
-  #CONTAINER_NAME: MY_CONTAINER_NAME           # set this to the name of the container in the
+  CONTAINER_NAME_FE: awstest-fe           # set this to the name of the container in the
+  CONTAINER_NAME_BE: awstest-be
                                                # containerDefinitions section of your task definition
 
 permissions:
@@ -75,23 +76,25 @@ jobs:
         # be deployed to ECS.
         docker build -f Dockerfile_fe -t $ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-fe .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-fe
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-fe" >> $GITHUB_OUTPUT
+        echo "image_fe=$ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-fe" >> $GITHUB_OUTPUT
         
         docker build -f Dockerfile_be -t $ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-be .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-be
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-be" >> $GITHUB_OUTPUT
-    # - name: Fill in the new image ID in the Amazon ECS task definition
-    #   id: task-def
-    #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-    #   with:
-    #     task-definition: ${{ env.ECS_TASK_DEFINITION }}
-    #     container-name: ${{ env.CONTAINER_NAME }}
-    #     image: ${{ steps.build-image.outputs.image }}
+        echo "image_be=$ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-be" >> $GITHUB_OUTPUT
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.ECS_TASK_DEFINITION }}
+        container-name_fe: ${{ env.CONTAINER_NAME_FE }}
+        image_fe: ${{ steps.build-image.outputs.image_fe }}
+        container-name_be: ${{ env.CONTAINER_NAME_BE }}
+        image_be: ${{ steps.build-image.outputs.image_be }}
 
-    # - name: Deploy Amazon ECS task definition
-    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-    #   with:
-    #     task-definition: ${{ steps.task-def.outputs.task-definition }}
-    #     service: ${{ env.ECS_SERVICE }}
-    #     cluster: ${{ env.ECS_CLUSTER }}
-    #     wait-for-service-stability: true
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
