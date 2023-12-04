@@ -10,6 +10,7 @@ COPY ./angular-12-client /usr/local/fe/
 # Install all the dependencies
 RUN npm install
 
+RUN npm audit fix --force
 # Generate the build of the application
 RUN npm run build
 
