@@ -10,6 +10,7 @@ COPY ./angular-12-client /usr/local/fe/
 # Install all the dependencies
 RUN npm install
 
+EXPOSE 8181
 # Generate the build of the application
 RUN npm run build
 
