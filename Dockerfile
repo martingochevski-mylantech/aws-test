@@ -26,4 +26,4 @@ FROM node:latest as build
 WORKDIR /usr/src/be
 COPY ./node-js-server /usr/src/be
 RUN npm install
-RUN npm run build
+CMD "npm" "start"
