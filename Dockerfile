@@ -22,7 +22,7 @@ FROM nginx:latest
 # Copy the build output to replace the default nginx contents.
 COPY --from=build /usr/local/fe/rc/app /usr/share/nginx/html
 
-FROM node:latest
+FROM node:latest as build
 WORKDIR /usr/src/be
 COPY ./node-js-server /usr/src/be
 RUN npm install
