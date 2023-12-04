@@ -82,14 +82,21 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-be
         echo "image_be=$ECR_REGISTRY/$ECR_REPOSITORY:${{env.IMAGE_TAG}}-be" >> $GITHUB_OUTPUT
     - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
+      id: render-fe-task
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
-        container-name_fe: ${{ env.CONTAINER_NAME_FE }}
-        image_fe: ${{ steps.build-image.outputs.image_fe }}
-        container-name_be: ${{ env.CONTAINER_NAME_BE }}
-        image_be: ${{ steps.build-image.outputs.image_be }}
+        container-name: ${{ env.CONTAINER_NAME_FE }}
+        image: ${{ steps.build-image.outputs.image_fe }}
+
+
+    - name: Modify Amazon ECS task definition with second container
+      id: render-be-task
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+        container-name: ${{ env.CONTAINER_NAME_BE }}
+        image: ${{ steps.build-image.outputs.image_be }}
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
