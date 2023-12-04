@@ -1,5 +1,5 @@
 # Use official node image as the base image
-FROM node:13 as build
+FROM node:14.15 as build
 
 # Set the working directory
 WORKDIR /usr/local/fe
